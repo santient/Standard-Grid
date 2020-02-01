@@ -10,7 +10,7 @@ def get_arguments():
 	parser.register_parameter("--lr_net",float,0.001,"The learning rate of the model.")
 	parser.register_parameter("--epochs",int,2000,"The number of epochs.")
 	#This is necessary
-	parser.register_parameter('--CMUGRID_root', str,".",'The grid root')
+	parser.register_parameter('--STANDARDGRID_root', str,".",'The grid root')
 
 	args=parser.compile_argparse()
 
@@ -23,13 +23,14 @@ if __name__=="__main__":
 	#The most complex ML model
 	time.sleep(2)
 
-	results_dir=os.path.join(params.CMUGRID_hex,"results/")
+	results_dir="results/"
 
 	if not os.path.isdir(results_dir):
 		os.makedirs(results_dir)
 
-	res_f=open(os.path.join(results_dir,"best.txt"))
-	res_f.write("Some good results")
+	res_f=open(os.path.join(results_dir,"best.txt"),"w")
+	res_f.write("Some good results ")
+	res_f.write(params.STANDARDGRID_root)
 
-	pickle.dump([0.001,0.00123,0.00321],os.path.join(results_dir,"epochs.pkl"))
+	pickle.dump([0.001,0.00123,0.00321],open(os.path.join(results_dir,"epochs.pkl"),"wb"))
 	

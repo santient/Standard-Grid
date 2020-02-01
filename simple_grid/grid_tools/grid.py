@@ -156,24 +156,15 @@ class Grid:
 
 		if parallel>3:
 			log.error("Parallel cannot be higher than 3.",error=True)
+
 		if fraction>1 or fraction<0:
 			log.error("Fraction not in range [0,1].",error=True)
 
-		caller_dir=os.path.join(self.grid_dir,"callers/")
+		if num_runners==None:
+			num_runners=len(self.grid)
+			runners_prefix=runners_prefix*num_runners
+
 		command_hexes = [gi for gi in os.listdir(os.path.join(self.grid_dir,"instances/")) if os.path.isdir(os.path.join(self.grid_dir,"instances/",gi))]
-
-		def write_instance_caller_content__(fhandle,callee_path,command_hex):
-			fhandle.write ("#!/bin/sh\n")
-			fhandle.write ("cd %s\n"%callee_path)
-			fhandle.write ("sh %s.sh\n"%command_hex)
-			fhandle.write ("cd - > /dev/null\n")
-
-		if not os.path.exists(caller_dir):
-			os.makedirs(caller_dir)
-
-			for command_hex in command_hexes:
-				caller_fname=os.path.join(caller_dir,command_hex+".sh")
-				write_instance_caller_content__(open(caller_fname,"w"),os.path.join("../instances/",command_hex),command_hex)
 
 		#If the central command directory does not exist, then recreate it
 		central_command_dir=os.path.join(self.grid_dir,"central/")
@@ -185,44 +176,28 @@ class Grid:
 		if not os.path.exists(attempt_dir):
 			os.makedirs(attempt_dir)
 
-		#TODO: Decide which attempt it is 
 		group_dir=os.path.join(self.grid_dir,"central/","attempt_1/","groups/")
 		if not os.path.exists(group_dir):
 			os.makedirs(group_dir)
 
 		main_handle=open(os.path.join(attempt_dir,"main.sh"),"w")
 
+		def write_main_entries__(main_handle,entry):
+			main_handle.write("cd ./groups/\n")
+			main_handle.write("%s\n"%entry)
+			main_handle.write("cd - > /dev/null\n")
+
 		split_len=math.ceil((len(self.grid)*fraction)/num_runners)
 		for i in range(num_runners):
+			this_group="group_%d.sh"%i
 			this_hexes=command_hexes[i*split_len:(i+1)*split_len]
-			group_handle=open(os.path.join(group_dir,"group_%d.sh"%i),"w")
+			this_group_fname=os.path.join(group_dir,this_group)
+			group_handle=open(this_group_fname,"w")
 			for this_hex in this_hexes: 
-				group_handle.write("sh ../instances/%s.sh\n"%this_hex)
-			
-
-			
-
-#	def operationalize(self, central_command_prefix, central_command_postfix, local_command_prefix, local_command_postfix, runner_command_prefix, runner_command_postfix):
-#
-#		grid_central_command_handle=open(os.path.join(this_grid_dir,"grid_central_command.sh"),"w")
-#
-#		for command,grid_instance in zip(total_commands_str,self.grid):
-#
-#			command_hex=get_hash(command)
-#			command_dir=os.path.join(this_grid_dir,command_hex)
-#			os.makedirs(command_dir)
-#			local_sh_name=os.path.join(command_dir,command_hex+".sh")
-#			local_grid_name=os.path.join(command_dir,command_hex+".pkl")
-#			self.write_local_sh_content(open(local_sh_name,"w"),command,command_dir,command_hex)
-#			self.write_local_grid_content(open(local_grid_name,"wb"),grid_instance)
-#			self.write_central_sh_content(grid_central_command_handle,local_sh_name,central_command_prefix)
-
-
-#	def write_central_sh_content(self,grid_central_command_handle,central_command_entry,central_command_prefix):
-#		grid_central_command_handle.write("%s %s"%(central_command_prefix,central_command_entry))
-#		if self.central_command_parallel:
-#			grid_central_command_handle.write(" &\n")
-#		else:
-#			grid_central_command_handle.write("\n")
+				#group_handle.write("cd ../../../instances/%s/ && %s %s.sh > %s.stdout && cd - > /dev/null\n"%(this_hex,runners_prefix[i],this_hex,this_hex))
+				group_handle.write("cd ../../../instances/%s/ && %s %s.sh && cd - > /dev/null\n"%(this_hex,runners_prefix[i],this_hex))
+			write_main_entries__(main_handle,"cat %s | xargs -L 1 -I CMD -P %d bash -c CMD &"%(this_group,parallel))
+		main_handle.write("wait")
+		main_handle.close()
 
 
