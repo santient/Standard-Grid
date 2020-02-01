@@ -53,12 +53,12 @@ class ArgParser:
 		if len(list(self.parameters.keys()))==0:
 			log.error("No parameters registered. Exiting ...!",error=True)
 	
-		if "--CMUGRID_root" not in list(self.parameters.keys()):
-			log.error("--CMUGRID_root not in the arg parameters. Exiting ...! ",error=True)
+		if "--STANDARDGRID_root" not in list(self.parameters.keys()):
+			log.error("--STANDARDGRID_root not in the arg parameters. Exiting ...! ",error=True)
 
-		if "--CMUGRID_hex" not in list(self.parameters.keys()):
-			log.error("--CMUGRID_hex not in the arg parameters. Running in sandbox mode since this is not a grid search ...! ",error=False)
-			self.register_parameter("--CMUGRID_hex",str,"sandbox","The hex denotes the run instance")
+		if "--STANDARDGRID_hex" not in list(self.parameters.keys()):
+			log.error("--STANDARDGRID_hex not in the arg parameters. Running in sandbox mode since this is not a grid search ...! ",error=False)
+			self.register_parameter("--STANDARDGRID_hex",str,"sandbox","The hex denotes the run instance")
 
 		parser = argparse.ArgumentParser()
 		for key in list(self.parameters.keys()):
