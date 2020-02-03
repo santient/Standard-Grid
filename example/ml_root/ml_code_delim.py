@@ -22,7 +22,7 @@ if __name__=="__main__":
 	params=get_arguments()
 	#The most complex ML model
 	#TODO: TRAIN A ML MODEL - POPULATE RESULTS
-	time.sleep(2)
+	time.sleep(10)
 	results={"bestloss":.00123,"worst_loss":.0123}
 	#ML MODEL DONE
 

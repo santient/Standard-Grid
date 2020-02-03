@@ -266,7 +266,7 @@ class Grid:
 
 		log.success("Grid runners established under %s"%attempt)
 
-	def default_interpret(self,main_res_file,output_file,input_type="special",out_type="csv",separator=SEP,):
+	def delim_interpret(self,main_res_file,output_file,input_type="special",out_type="csv",separator=SEP,):
 		started,finished,failed,not_started=self.get_status()
 
 		if len(finished)==0:

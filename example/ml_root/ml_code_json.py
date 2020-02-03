@@ -21,7 +21,7 @@ if __name__=="__main__":
 
 	params=get_arguments()
 	#The most complex ML model
-	time.sleep(2)
+	time.sleep(10)
 
 	results_dir="results/"
 
@@ -31,7 +31,7 @@ if __name__=="__main__":
 	results={"bestloss":.00123,"worst_loss":.0123}
 	res_f=open(os.path.join(results_dir,"best.txt"),"w")
 #	res_f.write("hi,1__STANDARD_GRID_SEP__bye,12")
-	res_f.write(json.dumps(results)+"\n")
+	res_f.write(json.dumps(results))
 
 	pickle.dump([0.001,0.00123,0.00321],open(os.path.join(results_dir,"epochs.pkl"),"wb"))
 	

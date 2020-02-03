@@ -1,9 +1,11 @@
 import standard_grid
 import pickle
-import os 
+import time
 import sys
+import os
 
 if __name__=="__main__":
+
 	grid=pickle.load(open(sys.argv[1],"rb"))
-	grid.delim_interpret("results/best.txt","interpretation.csv")
+	grid.resume_as_before()
 
