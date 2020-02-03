@@ -141,7 +141,7 @@ class Grid:
 
 		
 		self.shell_instances_generated=True
-		log.success("Shell instances created for grid in %s"%self.grid_dir)
+		log.success("Shell instances created for grid in %s/instances"%self.grid_dir)
 
 	def get_status(self,success_codes=[0]):
 
