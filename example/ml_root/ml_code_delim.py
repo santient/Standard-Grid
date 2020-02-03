@@ -9,8 +9,6 @@ def get_arguments():
 	parser.register_parameter("--bs",int,32,"The batch size.")
 	parser.register_parameter("--lr_net",float,0.001,"The learning rate of the model.")
 	parser.register_parameter("--epochs",int,2000,"The number of epochs.")
-	#This is necessary
-	parser.register_parameter('--STANDARDGRID_root', str,".",'The grid root')
 
 	args=parser.compile_argparse()
 

@@ -118,7 +118,7 @@ class Grid:
 		def write_shell_instance_content__(fhandle,command,command_hex):
 			fhandle.write ("#!/bin/sh\n")
 			fhandle.write ("run_grid_instance (){\n")
-			fhandle.write("\t"+command+" --STANDARDGRID_root %s --STANDARDGRID_hex %s \n "%(self.grid_hash,command_hex))
+			fhandle.write("\t"+command+" \n ")
 			fhandle.write("\t%s > %s\n"%("echo $?","STANDARDGRID_instance_output"))
 			fhandle.write ("}\n")
 			fhandle.write ("run_grid_instance")
@@ -291,6 +291,7 @@ class Grid:
 		else:
 			log.error("Not implemented yet ...")
 
+
 	def json_interpret(self,main_res_file,output_file,separator=SEP):
 		started,finished,failed,not_started=self.get_status()
 
@@ -312,20 +313,25 @@ class Grid:
 
 
 	def __write_res_to_csv(self,res_list,output_fname):
-		output=open(output_fname,"w")
-		#Writing the headers first
-		res0=res_list[0]
-		outstring=""
-		for key in res0:
-			outstring+=str(key)+","
-		output.write(outstring[:-1]+"\n")
+		import csv
 
-		for res in res_list:
-			outstring=""
-			for key in res:
-				
-				outstring+=str(res[key])+","
-			output.write(outstring[:-1]+"\n")
+		with open(output_fname,"w") as output:
+
+			csv_writer=csv.writer(output, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+			#Writing the headers first
+			res0=res_list[0]
+			header=[]
+			for key in res0:
+				header.append(key)
+			csv_writer.writerow(header)
+	
+			for res in res_list:
+				row=[]
+				for key in res0:
+					row.append(res[key])
+				csv_writer.writerow(row)
+
+		log.success("Results gathered in %s"%output_fname)
 		
 
 	def save(self,dump_fname):
