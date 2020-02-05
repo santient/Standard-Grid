@@ -17,7 +17,7 @@ The above are not unreasonable assumptions. For example, if the results dir does
 
 Let's assume the results of the experiments are written into a depth-1 dictionary and then dumped as a json file within the output directory. Example of a simple code:
 
-```
+```python
 
 import os
 import time
@@ -42,16 +42,19 @@ if __name__=="__main__":
 	#The most complex ML model
 	time.sleep(10)
 
-	results_dir="results/"
+	out_dir="output/"
 
-	if not os.path.isdir(results_dir):
-		os.makedirs(results_dir)
+	if not os.path.isdir(out_dir):
+		os.makedirs(out_dir)
 
 	results={"bestloss":.00123,"worst_loss":.0123}
-	res_f=open(os.path.join(results_dir,"best.txt"),"w")
+
+	#this is important for the standard-grid, but not required.
+	res_f=open(os.path.join(out_dir,"best.txt"),"w")
 	res_f.write(json.dumps(results))
 
-	pickle.dump([0.001,0.00123,0.00321],open(os.path.join(results_dir,"epochs.pkl"),"wb"))
+	#you can also write whatever you like to other places within the out_dir
+	pickle.dump([0.001,0.00123,0.00321],open(os.path.join(out_dir,"weights.pkl"),"wb"))
 ```
 
 
