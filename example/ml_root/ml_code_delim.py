@@ -2,7 +2,6 @@ import os
 import time
 import pickle
 import standard_grid
-import json
 
 def get_arguments():
 	parser = standard_grid.ArgParser()
@@ -14,21 +13,22 @@ def get_arguments():
 
 	return args 
 
-
+#THIS CODE IS NOT AS ELEGANT AS THE JSON VARIANT. USE ONLY IF YOU HATE JSON ...
 if __name__=="__main__":
 
 	params=get_arguments()
 	#The most complex ML model
-	#TODO: TRAIN A ML MODEL - POPULATE RESULTS
 	time.sleep(10)
+
+	out_dir="output/"
+
+	if not os.path.isdir(out_dir):
+		os.makedirs(out_dir)
+
 	results={"bestloss":.00123,"worst_loss":.0123}
-	#ML MODEL DONE
 
-
-	results_dir="results/"
-	if not os.path.isdir(results_dir):
-		os.makedirs(results_dir)
-	res_f=open(os.path.join(results_dir,"best.txt"),"w")
+	#this is important for the standard-grid, but not required.
+	res_f=open(os.path.join(out_dir,"best.txt"),"w")
 
 	delim="__STANDARD_GRID_SEP__"
 	output_str=""
@@ -36,3 +36,5 @@ if __name__=="__main__":
 		output_str+=key+","+str(results[key])+delim
 	res_f.write(output_str[:-len(delim)])
 
+	#you can also write whatever you like to other places within the out_dir
+	pickle.dump([0.001,0.00123,0.00321],open(os.path.join(out_dir,"weights.pkl"),"wb"))
