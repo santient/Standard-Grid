@@ -11,9 +11,51 @@ Example:
 python ml_code.py --lr 0.001 --dataset woopsi --bounding_boxes yolo66666.666 --openface_file closed_neck.wtf
 ```
 
-Let's assume the above file writes some outputs (like experimenal outputs) to a a directory called results inside ml_root. Results can never be outside the ml_root. ml_code.x will create the directory if not existing. 
+Let's assume the above file writes some outputs (like experimenal outputs) to a directory called output inside ml_root. output can never be outside the ml_root. ml_code.x will create the directory if not existing. 
 
 The above are not unreasonable assumptions. For example, if the results dir does not exist then your code will crash even if not going through a grid search.
+
+Let's assume the results of the experiments are written into a depth-1 dictionary and then dumped as a json file within the output directory. Example of a simple code:
+
+```
+import os
+import time
+import pickle
+import standard_grid
+import json
+
+def get_arguments():
+>-------parser = standard_grid.ArgParser()
+>-------parser.register_parameter("--bs",int,32,"The batch size.")
+>-------parser.register_parameter("--lr_net",float,0.001,"The learning rate of the model.")
+>-------parser.register_parameter("--epochs",int,2000,"The number of epochs.")
+
+>-------args=parser.compile_argparse()
+
+>-------return args
+
+
+if __name__=="__main__":
+
+>-------params=get_arguments()
+>-------#The most complex ML model
+>-------time.sleep(10)
+
+>-------results_dir="output/"
+
+>-------if not os.path.isdir(results_dir):
+>------->-------os.makedirs(results_dir)
+
+>-------results={"bestloss":.00123,"worst_loss":.0123}
+>-------res_f=open(os.path.join(results_dir,"best.txt"),"w")
+#>------res_f.write("hi,1__STANDARD_GRID_SEP__bye,12")
+>-------res_f.write(json.dumps(results))
+
+>-------pickle.dump([0.001,0.00123,0.00321],open(os.path.join(results_dir,"epochs.pkl"),"wb"))
+
+```
+
+
 
 # Grid Search
 
