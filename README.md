@@ -92,13 +92,33 @@ The code above will save your grid in the active directory, which again should a
 
 # Grid Runners
 
-This is the part where the magic happens. We will just go by examples:
+This is the part where the magic happens. We will just go by examples.
+
+To break the job on 4 GPUs, run 2 jobs on each gpu until no more instances are present:
 
 ```python
-	#Breaks the work on 4 GPUs, runs 2 jobs on each gpu
 	grid.create_runner(num_runners=4,runners_prefix=["CUDA_VISIBLE_DEVIDES=%d sh"%i for i in range(4)],parallel=2)
 ```
 
+To run 8 sbatch jobs at a time until completion (make sure to run this from inside screen or dies after logout): 
 
+```python
+	total_at_a_time=8
+	grid.create_runner(num_runners=total_at_a_time,runners_prefix=["sbatch -p gpu_low -c 1 --gres=gpu:1 -W"]*total_at_a_time)
+```
 
+To submit everything to the sbatch (you can log out regardless of screen or not - never submit in bulk using gpu_high unless permitted):
 
+```python
+	grid.create_runner(num_runners=None,runners_prefix=["sbatch -p gpu_low -c 1 --gres=gpu:1"])
+```
+
+Always make sure to check the squeue. 
+
+# Grid Status and Resume
+
+Change your active directory back to the grid_search. Remember any operations inside this directory needs to be called from within the directory itself. Load the .$grid_hash using pickle, and call:
+
+```python
+	grid.get_status()
+```
