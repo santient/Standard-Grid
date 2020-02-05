@@ -1,7 +1,7 @@
 # Standard-Grid
 Standard-Grid @ Standard-SDK: standard protocol for reporting grid search results for students advised by me.
 
-# Preliminaries
+# 1. Preliminaries
 
 Assume you have a code written in a particular language and library. Assume you have a workstation or a slurm-based cluster. Assume your code is under a directory called ml_root. This directory has two properties 1) it has the main entry point of your code, 2) no write operations outside this directory is made by your code.
 We will call the entry point of your code as ml_code.x. In reality there are no requirements for python, c++ or any other language. ml_code.x takes commands from argv using stanard --command style of system arguments. 
@@ -59,7 +59,7 @@ if __name__=="__main__":
 
 
 
-# Grid Search
+# 2. Grid Search
 
 Create a folder within the ml_root for your grid search setup. let's call this grid_search. Then simply use an example similar to below. Call this grid_generate.py inside grid_search folder. ALWAYS run this code when active directory is in grid_search. 
 
@@ -86,11 +86,11 @@ First, you create a Grid object. The object takes two non-default arguments, one
 
 Second, you register the grid parameters. Subsequently, you call the generate_grid to create the combinations of your grid object. prefix and postfix are complex operations. Prefix can take arguments that are non-grid search. But mostly prefix and postfix will be as depicted above. After generate_shell_instances is called, no more parameters can be registered or the grid may not change. For each instance a hash depicted as $instance_hash is generated, and based on instnace hashes a $grid_hash is generated. Therefore identical grid searchers will results in similar hash. To run an identical grid multiple times, you can specify a unique id to the Grid constructor, which will be used to change the hash. 
 
-Third, you call for the generate_shell_instnaces to create a shell instances for each combination. Each shell instance, will be created under results/$grid_hash/instances/$instance_hash/. These instances are the most important part of the Grid object. You can cd into results/$grid_hash/instances/$instance_hash/ and run $instance_hash to run the instance, but obviosuly this is too much work. Hence we create runners (next section).
+Third, you call for the generate_shell_instnaces to create a shell instances for each combination. Each shell instance, will be created under ml_root/results/$grid_hash/instances/$instance_hash/. These instances are the most important part of the Grid object. You can cd into ml_root/results/$grid_hash/instances/$instance_hash/ and run $instance_hash to run the instance, but obviosuly this is too much work. Hence we create runners (next section).
 
 The code above will save your grid in the active directory, which again should always be grid_search. The file name will be .$grid_hash.pkl. You can load the grid object afterwards using pickle. 
 
-# Grid Runners
+# 3. Grid Runners
 
 This is the part where the magic happens. We will just go by examples.
 
@@ -113,12 +113,41 @@ To submit everything to the sbatch (you can log out regardless of screen or not 
 	grid.create_runner(num_runners=None,runners_prefix=["sbatch -p gpu_low -c 1 --gres=gpu:1"])
 ```
 
-Always make sure to check the squeue. 
+Always make sure to check the squeue. After the creation of the grid runners, cd to ml_root/results/$grid_hash/central/attempt_x/ and run main.sh. This script needs to run from the folder it resides in. 
 
-# Grid Status and Resume
+# 4. Grid Status and Resume
 
 Change your active directory back to the grid_search. Remember any operations inside this directory needs to be called from within the directory itself. Load the .$grid_hash using pickle, and call:
 
 ```python
 	grid.get_status()
 ```
+This will tell you how many of your scripts ended successfully (status code 0), with error (status code !=0), still running (no status code), or not started yet (no status file). Status files are available in the ml_root/results/$grid_hash/instances/$instance_hash/STANDARDGRID_instance_output
+
+To resume the grid using the operations which the .$grid_hash was pickled with, run the following (make sure the runner is created before the origin grid creation script is finished - essentially sections 2 and 3 are in one code, otherwise when the .$grid_hash is created, no runner is attached):
+
+```python
+grid.resume_as_before()
+```
+If you want to submit the ones which may already be running (sometimes atlas goes down, and everything that failed and was running needs to restart), specify hard_resume=True to above function.
+
+Alternatively, you can copy the ml_root to some other machine and resume using:
+```python
+grid.resume( ... )
+```
+With arguments identical to create_runner function. 
+
+
+# 4. Compile CSV
+
+Remember when creating the json output, with non-nested results dictionary? Now we can get all the results in one go using:
+
+```python
+	grid.json_interpret("output/best.txt","interpretation.csv")
+```
+
+# Rermarks
+
+1. Your mindset should be as if you are writing a code without caring for the grid search. Standard-Grid creates a grid search as an attachment for you. At not point a change is needed to ml_code.x, but rather simply following good code writing practices
+
+2. Everything internally for Standard-Grid is relatively references. So moving your results directory and moving your ml_code.x will results in failure of grid search. Therefore, to begin with, solidify these two so you won't change them again. Also, grid_search folder could be the same when generating many different parameter sets, but does not need to be. You can have grid_search1,2,3, etc. However, good practice is to keep all your grid searches in the same place. So creation of grid is encouraged to be always in grid_search folder and grid destination to be results folder.
