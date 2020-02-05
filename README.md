@@ -61,4 +61,44 @@ if __name__=="__main__":
 
 # Grid Search
 
-Create a folder within the 
+Create a folder within the ml_root for your grid search setup. let's call this grid_search. Then simply use an example similar to below. Call this grid_generate.py inside grid_search folder. ALWAYS run this code when active directory is in grid_search. 
+
+```python
+import standard_grid
+import pickle
+import time
+import os
+
+if __name__=="__main__":
+
+	grid=standard_grid.Grid("../../../ml_code_json.py","../../../results/")
+
+	grid.register('bs', [32,64])
+	grid.register('lr_net', [0.001,0.01,0.0001])
+	grid.register('epochs', [5000,6000,100000000000])
+
+	grid.generate_grid()
+
+	grid.generate_shell_instances(prefix="python ",postfix="")
+```
+
+First, you create a Grid object. The object takes two non-default arguments, one for where the entry point is and the second where you intend your grid searches to be stored at. I suggest creating one folder per project. This should also fall within ml_root. You can refer to these two folders relative or absolute. 
+
+Second, you register the grid parameters. Subsequently, you call the generate_grid to create the combinations of your grid object. prefix and postfix are complex operations. Prefix can take arguments that are non-grid search. But mostly prefix and postfix will be as depicted above. After generate_shell_instances is called, no more parameters can be registered or the grid may not change. For each instance a hash depicted as $instance_hash is generated, and based on instnace hashes a $grid_hash is generated. Therefore identical grid searchers will results in similar hash. To run an identical grid multiple times, you can specify a unique id to the Grid constructor, which will be used to change the hash. 
+
+Third, you call for the generate_shell_instnaces to create a shell instances for each combination. Each shell instance, will be created under results/$grid_hash/instances/$instance_hash/. These instances are the most important part of the Grid object. You can cd into results/$grid_hash/instances/$instance_hash/ and run $instance_hash to run the instance, but obviosuly this is too much work. Hence we create runners (next section).
+
+The code above will save your grid in the active directory, which again should always be grid_search. The file name will be .$grid_hash.pkl. You can load the grid object afterwards using pickle. 
+
+# Grid Runners
+
+This is the part where the magic happens. We will just go by examples:
+
+```python
+	#Breaks the work on 4 GPUs, runs 2 jobs on each gpu
+	grid.create_runner(num_runners=4,runners_prefix=["CUDA_VISIBLE_DEVIDES=%d sh"%i for i in range(4)],parallel=2)
+```
+
+
+
+
