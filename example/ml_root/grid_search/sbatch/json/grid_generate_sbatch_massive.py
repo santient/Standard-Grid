@@ -13,6 +13,6 @@ if __name__=="__main__":
 	grid.generate_grid()
 
 	grid.generate_shell_instances(prefix="python ",postfix="")
-	grid.create_runner(num_runners=None,runners_prefix=["sbatch -p gpu_low -c 1"])
+	grid.create_runner(num_runners=None,runners_prefix=["sbatch -p gpu_low -c 1 --gres=gpu:1"])
 
 
