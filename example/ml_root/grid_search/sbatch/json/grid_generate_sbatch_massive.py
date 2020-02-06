@@ -11,8 +11,6 @@ if __name__=="__main__":
 	grid.register('epochs', [5000,6000,100000000000])
 
 	grid.generate_grid()
-	grid_local_command_prefix="sh"
-	grid_local_command_postfix=""
 
 	grid.generate_shell_instances(prefix="python ",postfix="")
 	grid.create_runner(num_runners=None,runners_prefix=["sbatch -p gpu_low -c 1"])
