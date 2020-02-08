@@ -4,7 +4,7 @@ import os
 
 if __name__=="__main__":
 
-	grid=standard_grid.Grid("../../../ml_code_json.py","../../../results/")
+	grid=standard_grid.Grid("../../../ml_code_json.py","./results/")
 
 	grid.register('bs', [32,64])
 	grid.register('lr_net', [0.001,0.01,0.0001])
