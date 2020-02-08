@@ -122,7 +122,7 @@ class Grid:
 			fhandle.write("\t%s > %s\n"%("echo $?","STANDARDGRID_instance_output"))
 			fhandle.write ("}\n")
 			fhandle.write ("run_grid_instance")
-	
+
 		def write_instance_parameters__(fhandle,grid_instance):
 			pickle.dump(grid_instance,fhandle)
 
@@ -137,7 +137,7 @@ class Grid:
 			write_shell_instance_content__(open(local_sh_name,"w"),command,command_hex)
 
 			instance_pkl_fname=os.path.join(command_dir,command_hex+".pkl")
-			write_instance_parameters__(open(instance_pkl_fname,"wb"),grid_instance)
+			write_instance_parameters__(open(instance_pkl_fname,"wb"),self[i])
 
 		
 		self.shell_instances_generated=True
@@ -180,6 +180,14 @@ class Grid:
 	def resume(self,fraction=1.0,num_runners=1,runners_prefix=["sh"],parallel=1,hard_resume=False):
 		self.create_runner(fraction=fraction,num_runners=num_runners,runners_prefix=runners_prefix,parallel=parallel,hard_resume=hard_resume)
 
+	def __nullify_previous_instance_runs(self,nullification_list):
+		for command_hex in nullification_list:
+			output_code_fname=os.path.join(self.grid_dir,"instances/",command_hex+"/","STANDARDGRID_instance_output")
+			if os.path.exists (output_code_fname):
+				os.remove(output_code_fname)
+			else:
+				pass
+
 	def create_runner(self,fraction=1.0,num_runners=1,runners_prefix=["sh"],parallel=1,hard_resume=False):
 
 		if parallel>3:
@@ -190,7 +198,7 @@ class Grid:
 
 		if num_runners==None:
 			num_runners=len(self.grid)
-		
+
 		if len(runners_prefix)==1:
 			runners_prefix=runners_prefix*num_runners
 
@@ -210,7 +218,6 @@ class Grid:
 				else:
 					pass
 
-
 		started,finished,failed,not_started=self.get_status()
 
 		if hard_resume:
@@ -222,6 +229,8 @@ class Grid:
 			log.advisory("No more instances remaining. Exiting ...!")
 			exit()
 
+		#Ensure no script output is recorded, therefore all the instances will be seen as not-started. 
+		self.__nullify_previous_instance_runs(command_hexes)
 
 		#If the central command directory does not exist, then recreate it
 		central_command_dir=os.path.join(self.grid_dir,"central/")
@@ -266,32 +275,6 @@ class Grid:
 
 		log.success("Grid runners established under %s"%attempt)
 
-	def delim_interpret(self,main_res_file,output_file,input_type="special",out_type="csv",separator=SEP,):
-		started,finished,failed,not_started=self.get_status()
-
-		if len(finished)==0:
-			log.error("No results to compile yet. Exiting ...!",error=True)
-
-		res_list=[]
-		for command_hex in finished:
-			main_res_fpath=os.path.join(self.grid_dir,"instances/",command_hex+"/",main_res_file)
-			if not os.path.isfile(main_res_fpath):
-				log.warning("%s does not have the %s file."%(command_hex,main_res_file))
-				continue
-			main_res_content=open(main_res_fpath,"r").read().replace("\n","")
-			res_list.append(OrderedDict())
-			res_list[-1]["command_hex"]=command_hex
-			splitted=main_res_content.split(separator)
-			for entry in splitted:
-				key,value=entry.split(",",1)
-				res_list[-1][key]=value
-
-		if out_type=="csv":
-			self.__write_res_to_csv(res_list,output_file)
-		else:
-			log.error("Not implemented yet ...")
-
-
 	def json_interpret(self,main_res_file,output_file,separator=SEP):
 		started,finished,failed,not_started=self.get_status()
 
@@ -306,11 +289,18 @@ class Grid:
 				log.warning("%s does not have the %s file."%(command_hex,main_res_file))
 				continue
 			main_res_content=open(main_res_fpath,"r").read()
-			res_list.append(json.loads(main_res_content))
-			res_list[-1]["command_hex"]=command_hex
+			main_res=json.loads(main_res_content)
+
+			in_params_fpath=os.path.join(self.grid_dir,"instances/",command_hex+"/",command_hex+".pkl")
+			in_params=pickle.load(open(in_params_fpath,"rb"))
+			for key in in_params:
+				main_res["STDGRID_%s"%key]=in_params[key]
+
+			res_list.append(main_res)
+			res_list[-1]["STDGRID_command_hex"]=command_hex
+			res_list[-1]["STDGRID_grid_hex"]=os.path.basename(self.grid_dir)
 
 		self.__write_res_to_csv(res_list,output_file)
-
 
 	def __write_res_to_csv(self,res_list,output_fname):
 		import csv
@@ -332,7 +322,6 @@ class Grid:
 				csv_writer.writerow(row)
 
 		log.success("Results gathered in %s"%output_fname)
-		
 
 	def save(self,dump_fname):
 		import pickle
