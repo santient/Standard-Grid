@@ -118,8 +118,10 @@ class Grid:
 		def write_shell_instance_content__(fhandle,command,command_hex):
 			fhandle.write ("#!/bin/sh\n")
 			fhandle.write ("run_grid_instance (){\n")
+			fhandle.write ("echo \"STARTED\" > shell_instance_started_signal\n")
 			fhandle.write("\t"+command+" \n ")
 			fhandle.write("\t%s > %s\n"%("echo $?","STANDARDGRID_instance_output"))
+			fhandle.write ("rm shell_instance_started_signal\n")
 			fhandle.write ("}\n")
 			fhandle.write ("run_grid_instance")
 
@@ -153,19 +155,21 @@ class Grid:
 		command_hexes = [gi for gi in os.listdir(os.path.join(self.grid_dir,"instances/")) if os.path.isdir(os.path.join(self.grid_dir,"instances/",gi))]
 
 		for command_hex in command_hexes:
-			output_code_fname=os.path.join(self.grid_dir,"instances/",command_hex+"/","STANDARDGRID_instance_output")
-			if os.path.exists (output_code_fname):
-				try:
-					output_code=int(open(output_code_fname,"r").read())
-				except:
+			command_dir=os.path.join(self.grid_dir,"instances/",command_hex+"/")
+			started_signal_fname=os.path.join(command_dir,"shell_instance_started_signal")
+			output_code_fname=os.path.join(command_dir,"STANDARDGRID_instance_output")
+			try:
+				output_code=int(open(output_code_fname,"r").read())
+			except:
+				if os.path.exists(started_signal_fname): 
 					started.append(command_hex)
-					continue
-				if output_code in success_codes:
-					finished.append(command_hex)
 				else:
-					failed.append(command_hex)
+					not_started.append(command_hex)
+				continue
+			if output_code in success_codes:
+				finished.append(command_hex)
 			else:
-				not_started.append(command_hex)
+				failed.append(command_hex)
 
 		log.status("Not started:	%.2f%%"%(float(len(not_started))*100/len(command_hexes)))
 		log.status("Unfinished*:	%.2f%%"%(float(len(started))    *100/len(command_hexes)))
@@ -180,13 +184,20 @@ class Grid:
 	def resume(self,fraction=1.0,num_runners=1,runners_prefix=["sh"],parallel=1,hard_resume=False):
 		self.create_runner(fraction=fraction,num_runners=num_runners,runners_prefix=runners_prefix,parallel=parallel,hard_resume=hard_resume)
 
-	def __nullify_previous_instance_runs(self,nullification_list):
+	def __nullify_previous_instance_runs(self,nullification_list,strict=True):
 		for command_hex in nullification_list:
-			output_code_fname=os.path.join(self.grid_dir,"instances/",command_hex+"/","STANDARDGRID_instance_output")
-			if os.path.exists (output_code_fname):
-				os.remove(output_code_fname)
+			shell_instance_dir=os.path.join(self.grid_dir,"instances/",command_hex+"/")
+			if strict:
+				removable_content=os.listdir(shell_instance_dir)
+				removable_content.remove(os.path.join(command_hex+".sh"))
+				removable_content.remove(os.path.join(command_hex+".pkl"))
 			else:
-				pass
+				removable_content=[os.path.join("STANDARDGRID_instance_output")]
+			for r in removable_content:
+				if os.path.exists(r):
+					os.remove(os.path.join(output_code_fname,r))
+				else:
+					pass
 
 	def create_runner(self,fraction=1.0,num_runners=1,runners_prefix=["sh"],parallel=1,hard_resume=False):
 
