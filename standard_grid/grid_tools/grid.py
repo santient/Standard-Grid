@@ -132,6 +132,7 @@ class Grid:
 			grid_instance=self.gen_args(i)
 			command=prefix+" "+entry_point_relative_to_instance+" "+grid_instance
 			command_hex=get_hash(command)
+			command=command+" "+postfix
 			command_dir=os.path.join(instances_dir,command_hex)
 			os.makedirs(command_dir)
 
