@@ -7,6 +7,7 @@ import pickle
 import sys
 import time
 import math
+import random
 
 SEP="__STANDARD_GRID_SEP__"
 
@@ -81,8 +82,7 @@ class Grid:
 		if self.grid_generated==False:
 			log.error("Grid was not generated, cannot shuffle. Exiting ...!",error=True)
 
-		log.warning("Not implemented yet")
-		pass
+		random.shuffle(self.grid)
 
 	def __getitem__(self,i):
 		if self.grid_generated==False:

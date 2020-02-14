@@ -11,6 +11,7 @@ if __name__=="__main__":
 	grid.register('epochs', [5000,6000,100000000000])
 
 	grid.generate_grid()
+	grid.shuffle_grid()
 
 	grid.generate_shell_instances(prefix="python ",postfix="")
 	total_at_a_time=8
