@@ -9,7 +9,6 @@ import time
 import math
 import random
 
-SEP="__STANDARD_GRID_SEP__"
 
 def get_hash(in_str):
 
@@ -285,9 +284,31 @@ class Grid:
 		main_handle.write("wait")
 		main_handle.close()
 
-		log.success("Grid runners established under %s"%attempt)
+		log.success("Grid runners established under %s"%os.path.join(self.grid_dir,attempt))
 
-	def json_interpret(self,main_res_file,output_file,separator=SEP):
+	def apply(self,apply_fn,input_file,output_file):
+		started,finished,failed,not_started=self.get_status()
+
+		if len(finished)==0:
+			log.error("No results to compile yet. Exiting ...!",error=True)
+
+		for command_hex in finished:
+			in_fpath=os.path.join(self.grid_dir,"instances/",command_hex+"/",input_file)
+			out_fpath=os.path.join(self.grid_dir,"instances/",command_hex+"/",output_file)
+			if not os.path.isfile(in_fpath):
+				log.warning("%s does not have the %s file."%(command_hex,input_file))
+				continue
+
+			try:
+				apply_fn(in_fpath,out_fpath)
+			except Exception as e:
+				log.error("Cannot apply the given function to instance %s with error %s ...!"%(command_hex,str(e)),error=False)
+
+		log.success("Function application finished.")
+		
+
+
+	def json_interpret(self,main_res_file,output_file):
 		started,finished,failed,not_started=self.get_status()
 
 		if len(finished)==0:

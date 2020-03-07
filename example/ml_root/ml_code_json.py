@@ -34,4 +34,4 @@ if __name__=="__main__":
 
 	#you can also write whatever you like to other places within the out_dir
 	pickle.dump([0.001,0.00123,0.00321],open(os.path.join(out_dir,"weights.pkl"),"wb"))
-	exit(5)
+	exit(0)
