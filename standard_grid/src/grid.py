@@ -181,8 +181,8 @@ class Grid:
 	def resume_as_before(self,hard_resume=False):
 		self.create_runner(**{**self.last_run_params,"hard_resume":hard_resume})
 
-	def resume(self,fraction=1.0,num_runners=1,runners_prefix=["sh"],parallel=1,hard_resume=False):
-		self.create_runner(fraction=fraction,num_runners=num_runners,runners_prefix=runners_prefix,parallel=parallel,hard_resume=hard_resume)
+	def resume(self,fraction=1.0,num_runners=1,runners_prefix=["sh"],parallel=1,overload=1,hard_resume=False):
+		self.create_runner(fraction=fraction,num_runners=num_runners,runners_prefix=runners_prefix,parallel=parallel,overload=overload,hard_resume=hard_resume)
 
 	def __nullify_previous_instance_runs(self,nullification_list,strict=True):
 		for command_hex in nullification_list:
@@ -274,7 +274,7 @@ class Grid:
 			main_handle.write("pids[%d]=$!\n"%idx)
 			main_handle.write("cd - > /dev/null\n")
 
-		split_len=math.ceil((len(self.grid)*fraction)/num_runners)
+		split_len=math.ceil((len(command_hexes)*fraction)/num_runners)
 
 		for i in range(num_runners):
 			this_group="group_%d.sh"%i
